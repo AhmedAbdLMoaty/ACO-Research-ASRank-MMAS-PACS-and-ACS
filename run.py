@@ -2,6 +2,7 @@ import subprocess
 import os
 import csv
 import config
+from memory_profiler import profile
 
 def run_all_tsp_files_in_folder(folder_path):
     for filename in os.listdir(folder_path):
