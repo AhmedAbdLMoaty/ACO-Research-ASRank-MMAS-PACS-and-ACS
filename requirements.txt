@@ -34,3 +34,4 @@ tabulate==0.8.10
 tsplib95==0.7.1
 tzdata==2024.1
 wrapt==1.16.0
+config==0.5.1
