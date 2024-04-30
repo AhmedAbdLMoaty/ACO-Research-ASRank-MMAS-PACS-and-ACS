@@ -10,9 +10,10 @@ def run_all_tsp_files_in_folder(folder_path):
             main()
 
 def main():
-    algorithms = ["PACS"]
+    algorithms = ["PACS", "mmas"]
     for algorithm in algorithms:
         print(f"Running {algorithm}...")
+        print(f"Results for {os.path.basename(config.filename)}:")
         result = subprocess.run(["python", f"{algorithm}.py", config.filename], capture_output=True, text=True)
         if result.stderr:
             print(f"Error running {algorithm}: {result.stderr}")
