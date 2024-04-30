@@ -1,4 +1,12 @@
 import subprocess
+import os
+import config
+
+def run_all_tsp_files_in_folder(folder_path):
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".tsp"):
+            config.filename = os.path.join(folder_path, filename)
+            main()  # Assuming main() is the function you want to run
 
 def main():
     print("Running PACS...")
@@ -10,5 +18,5 @@ def main():
     print("Running ACS...")
     subprocess.run(["python", "acs.py"])
 
-if __name__ == "__main__": 
-    main()
+if __name__ == "__main__":
+    run_all_tsp_files_in_folder("./TSP files")
