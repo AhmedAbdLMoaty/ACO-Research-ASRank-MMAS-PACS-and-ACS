@@ -1,6 +1,6 @@
 filename = ''
-iterations = 10
-num_ants = 10
+iterations = 100
+num_ants = 50
 alpha = 1.0
 beta = 1.0
 rho = 0.1
