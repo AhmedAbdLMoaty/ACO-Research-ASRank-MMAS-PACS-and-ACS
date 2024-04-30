@@ -18,7 +18,7 @@ def main():
             print(f"Error running {algorithm}: {result.stderr}")
         else:
             with open(f"{algorithm}_output.txt", "a") as f:
-                f.write(f"Results for {config.filename}:\n")
+                f.write(f"Results for {os.path.basename(config.filename)}:\n")
                 f.write(result.stdout)
                 f.write("\n")
 

@@ -1,5 +1,11 @@
 import numpy as np
 import sys
+from config import iterations, num_ants, alpha, beta, rho, q, evaporation_rate
+class PACS_ACO:
+    def __init__(self, filename):
+        self.filename = filename
+        self.graph = self.load_graph()
+        self.search_tsp_info()
 
 class PACS_ACO:
     def __init__(self, filename):
@@ -10,11 +16,16 @@ class PACS_ACO:
     def search_tsp_info(self):
         with open(self.filename, 'r') as file:
             for line in file:
-                if line.startswith("NAME :") or line.startswith("COMMENT :") or line.startswith("DIMENSION :"):
-                    print(line.strip())
+                line = line.strip()
+                if line.startswith(("NAME :", "COMMENT :", "DIMENSION :")):
+                    line_parts = line.split(":")
+                    if len(line_parts) > 1:
+                        print(f"{line_parts[0].strip()} : {line_parts[1].strip()}")
+                    else:
+                        print(line)
+
 
     def load_graph(self):
-        print("Loading graph...", self.filename)
         with open(self.filename, 'r') as file:
             lines = file.readlines()
 
@@ -54,7 +65,7 @@ class PACS_ACO:
 
         return graph
 
-    def partial_ant_colony_system(self, num_ants=10, max_iterations=100, evaporation_rate=0.5, alpha=1.0, beta=2.0):
+    def partial_ant_colony_system(self, num_ants=num_ants, max_iterations=iterations, evaporation_rate=evaporation_rate, alpha=alpha, beta=beta):
         num_nodes = len(self.graph)
         pheromones = np.ones((num_nodes, num_nodes))  # Initial pheromone levels
 
@@ -112,5 +123,5 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     pacs_solver = PACS_ACO(filename)
     best_tour, best_distance = pacs_solver.partial_ant_colony_system()
-    print("Best tour:", best_tour)
-    print("Best distance:", best_distance)
+    print("Best tour :", best_tour)
+    print("Best distance :", best_distance)
