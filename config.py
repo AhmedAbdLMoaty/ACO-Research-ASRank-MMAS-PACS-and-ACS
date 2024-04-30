@@ -1,4 +1,4 @@
-filename = 'US.tsp'
+filename = 'a280.tsp'
 iterations = 100
 num_ants = 25
 alpha = 1.0

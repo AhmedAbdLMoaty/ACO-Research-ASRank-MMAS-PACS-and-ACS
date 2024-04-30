@@ -1,10 +1,16 @@
 import numpy as np
-from config import filename, iterations, num_ants, alpha, beta, rho, q
 
 class PACS_ACO:
     def __init__(self, filename):
         self.filename = filename
         self.graph = self.load_graph()
+        self.search_tsp_info()
+
+    def search_tsp_info(self):
+        with open(self.filename, 'r') as file:
+            for line in file:
+                if line.startswith("NAME :") or line.startswith("COMMENT :") or line.startswith("DIMENSION :"):
+                    print(line.strip())
 
     def load_graph(self):
         # Load the benchmark data from the file
@@ -61,8 +67,20 @@ class PACS_ACO:
                     probabilities = [((pheromones[current_node][next_node] ** alpha) *
                                       (1.0 / self.graph[current_node][next_node]) ** beta)
                                      for next_node in unvisited_nodes]
-                    probabilities = np.array(probabilities) / np.sum(probabilities)
-                    selected_node = np.random.choice(unvisited_nodes, p=probabilities)
+
+                    # Check for zero probabilities
+                    sum_probabilities = np.sum(probabilities)
+                    if sum_probabilities == 0:
+                        selected_node = np.random.choice(unvisited_nodes)
+                    else:
+                        epsilon = 1e-9  # Small epsilon value to avoid division by zero
+                        probabilities /= (sum_probabilities + epsilon)  # Normalize probabilities
+
+                        # Corrective adjustment to ensure probabilities sum to 1
+                        diff_sum = 1.0 - np.sum(probabilities)
+                        probabilities[-1] += diff_sum  # Add the difference to the last probability
+
+                        selected_node = np.random.choice(unvisited_nodes, p=probabilities)
 
                     visited_nodes.append(selected_node)
                     tour_distance += self.graph[current_node][selected_node]
@@ -86,7 +104,7 @@ class PACS_ACO:
         return best_tour, best_distance
 
 # Example usage:
- # Replace with the actual filename
+filename = "US.tsp"  # Replace with the actual filename
 pacs_solver = PACS_ACO(filename)
 best_tour, best_distance = pacs_solver.partial_ant_colony_system()
 print("Best tour:", best_tour)

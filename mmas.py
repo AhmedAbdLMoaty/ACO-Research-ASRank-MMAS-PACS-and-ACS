@@ -1,9 +1,16 @@
 import numpy as np
-from config import filename, iterations, num_ants, alpha, beta, rho, q
+
 class MMAS_ACO:
     def __init__(self, filename):
         self.filename = filename
         self.graph = self.load_graph()
+        self.search_tsp_info()
+
+    def search_tsp_info(self):
+        with open(self.filename, 'r') as file:
+            for line in file:
+                if line.startswith("NAME :") or line.startswith("COMMENT :") or line.startswith("DIMENSION :"):
+                    print(line.strip())
 
     def load_graph(self):
         # Load the benchmark data from the file
@@ -59,11 +66,22 @@ class MMAS_ACO:
 
                 while len(visited_nodes) < num_nodes:
                     unvisited_nodes = [node for node in range(num_nodes) if node not in visited_nodes]
-                    probabilities = [((pheromones[current_node][next_node] ** alpha) *
-                                      (1.0 / self.graph[current_node][next_node]) ** beta)
-                                     for next_node in unvisited_nodes]
-                    probabilities = np.array(probabilities) / np.sum(probabilities)
-                    selected_node = np.random.choice(unvisited_nodes, p=probabilities)
+                    probabilities = []
+                    for next_node in unvisited_nodes:
+                        distance = self.graph[current_node][next_node]
+                        if distance == 0:
+                            probabilities.append(0)  # Assign zero probability if distance is zero
+                        else:
+                            probabilities.append(((pheromones[current_node][next_node] ** alpha) * (1.0 / distance) ** beta))
+
+                    # Check if all probabilities are zero
+                    if all(p == 0 for p in probabilities):
+                        selected_node = np.random.choice(unvisited_nodes)
+                    else:
+                        total_probability = np.sum(probabilities)
+                        probabilities /= total_probability
+                        selected_node = np.random.choice(unvisited_nodes, p=probabilities)
+
 
                     visited_nodes.append(selected_node)
                     tour_distance += self.graph[current_node][selected_node]
@@ -82,7 +100,7 @@ class MMAS_ACO:
                 for j in range(num_nodes):
                     pheromones[i][j] *= (1 - evaporation_rate)
                     pheromones[i][j] = max(min_pheromone, min(max_pheromone, pheromones[i][j]))
-                    
+
             for ant, tour in enumerate(ant_tours):
                 for i in range(len(tour) - 1):
                     pheromones[tour[i]][tour[i + 1]] += 1.0 / ant_distances[ant]
@@ -93,6 +111,7 @@ class MMAS_ACO:
         return best_tour, best_distance
 
 # Example usage:
+filename = "US.tsp"  # Replace with the actual filename
 mmas_solver = MMAS_ACO(filename)
 best_tour, best_distance = mmas_solver.max_min_ant_system()
 print("Best tour:", best_tour)
