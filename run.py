@@ -3,6 +3,7 @@ import os
 import csv
 import config
 from memory_profiler import profile
+import psutil
 
 def run_all_tsp_files_in_folder(folder_path):
     for filename in os.listdir(folder_path):
@@ -11,16 +12,7 @@ def run_all_tsp_files_in_folder(folder_path):
             config.filename = absolute_path
             main()
 
-def write_to_csv(algorithm, filename, name, comment, dimensions, best_tour, best_distance):
-    csv_filename = f"{algorithm}_output.csv"
-    exists = os.path.isfile(csv_filename)
-    with open(csv_filename, "a", newline='') as csvfile:
-        fieldnames = ['Name', 'Comment', 'Dimensions', 'Filename', 'Best Tour', 'Best Distance']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        if not exists:
-            writer.writeheader()
-        writer.writerow({'Name': name, 'Comment': comment, 'Dimensions': dimensions, 'Filename': filename, 'Best Tour': best_tour, 'Best Distance': best_distance})
-
+@profile
 def main():
     algorithms = ["PACS", "mmas", "racs", "acs"]
     for algorithm in algorithms:
@@ -49,7 +41,18 @@ def main():
                 elif line.startswith("Best distance"):
                     best_distance = line.split(":")[1].strip()
 
-            write_to_csv(algorithm, os.path.basename(config.filename), name, comment, dimensions, best_tour, best_distance)
+            memory_usage = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # Memory usage in MB
+            write_to_csv(algorithm, os.path.basename(config.filename), name, comment, dimensions, best_tour, best_distance, memory_usage)
+
+def write_to_csv(algorithm, filename, name, comment, dimensions, best_tour, best_distance, memory_usage):
+    csv_filename = f"{algorithm}_output.csv"
+    exists = os.path.isfile(csv_filename)
+    with open(csv_filename, "a", newline='') as csvfile:
+        fieldnames = ['Name', 'Comment', 'Dimensions', 'Filename', 'Best Tour', 'Best Distance', 'Memory Usage (MB)']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if not exists:
+            writer.writeheader()
+        writer.writerow({'Name': name, 'Comment': comment, 'Dimensions': dimensions, 'Filename': filename, 'Best Tour': best_tour, 'Best Distance': best_distance, 'Memory Usage (MB)': memory_usage})
 
 
 if __name__ == "__main__":
