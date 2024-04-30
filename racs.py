@@ -1,6 +1,8 @@
 from config import filename, iterations, num_ants, alpha, beta, rho, q
 import random
 import math
+import sys
+
 
 class City:
     def __init__(self, id, x, y):
@@ -37,6 +39,11 @@ class Ant:
 
 
 class RACS:
+    if __name__ == "__main__":
+        if len(sys.argv) < 2:
+            print("Usage: python pacs.py <filename>")
+            sys.exit(1)
+
     def __init__(self, cities, num_ants, alpha, beta, rho, q):
         self.cities = cities
         self.num_ants = num_ants
@@ -120,6 +127,7 @@ def run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q):
     best_tour, best_distance = racs.run(iterations)
     return best_tour, best_distance
 
+filename = sys.argv[1]
 cities = parse_tsp_file(filename)
 best_tour, best_distance = run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q)
 best_tour_ids = [city.id for city in best_tour]

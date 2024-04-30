@@ -1,5 +1,6 @@
 import numpy as np
 from config import filename, iterations, num_ants, alpha, beta, rho, q, evaporation_rate
+import sys
 
 class ACS:
     def __init__(self, filename):
@@ -58,10 +59,22 @@ class ACS:
 
                 while len(visited_nodes) < num_nodes:
                     unvisited_nodes = [node for node in range(num_nodes) if node not in visited_nodes]
-                    probabilities = [((pheromones[current_node][next_node] ** alpha) *
-                                      (1.0 / self.graph[current_node][next_node]) ** beta)
-                                     for next_node in unvisited_nodes]
-                    probabilities = np.array(probabilities) / np.sum(probabilities)
+                    probabilities = []
+                    for next_node in unvisited_nodes:
+                        if self.graph[current_node][next_node] == 0:
+                            # Avoid division by zero by setting probability to 0 for zero-distance edges
+                            probabilities.append(0.0)
+                        else:
+                            probabilities.append(((pheromones[current_node][next_node] ** alpha) *
+                                (1.0 / self.graph[current_node][next_node]) ** beta))
+
+                    # Check if all probabilities are zero
+                    if all(prob == 0 for prob in probabilities):
+                        # Set equal probabilities for unvisited nodes
+                        probabilities = [1.0 / len(unvisited_nodes) for _ in unvisited_nodes]
+                    else:
+                        probabilities = np.array(probabilities) / np.sum(probabilities)
+
                     selected_node = np.random.choice(unvisited_nodes, p=probabilities)
 
                     visited_nodes.append(selected_node)
@@ -84,6 +97,8 @@ class ACS:
                 pheromones[tour[-1]][tour[0]] += 1.0 / ant_distances[ant]
 
         return best_tour, best_distance
+
+
 
     def print_results(self, best_tour, best_distance):
         with open(self.filename, 'r') as file:
@@ -112,7 +127,13 @@ class ACS:
         print(f"Best distance: {best_distance}")
 
 # Example usage:
-filename = "US.tsp"  # Replace with the actual filename
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python pacs.py <filename>")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+
 acs_solver = ACS(filename)
 best_tour, best_distance = acs_solver.ant_colony_optimization()
 acs_solver.print_results(best_tour, best_distance)
