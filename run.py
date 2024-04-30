@@ -1,5 +1,6 @@
 import subprocess
 import os
+import csv
 import config
 
 def run_all_tsp_files_in_folder(folder_path):
@@ -9,8 +10,18 @@ def run_all_tsp_files_in_folder(folder_path):
             config.filename = absolute_path
             main()
 
+def write_to_csv(algorithm, filename, name, comment, dimensions, best_tour, best_distance):
+    csv_filename = f"{algorithm}_output.csv"
+    exists = os.path.isfile(csv_filename)
+    with open(csv_filename, "a", newline='') as csvfile:
+        fieldnames = ['Name', 'Comment', 'Dimensions', 'Filename', 'Best Tour', 'Best Distance']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if not exists:
+            writer.writeheader()
+        writer.writerow({'Name': name, 'Comment': comment, 'Dimensions': dimensions, 'Filename': filename, 'Best Tour': best_tour, 'Best Distance': best_distance})
+
 def main():
-    algorithms = ["PACS", "mmas" , "racs" , "acs"]
+    algorithms = ["PACS", "mmas", "racs", "acs"]
     for algorithm in algorithms:
         print(f"Running {algorithm}...")
         print(f"Results for {os.path.basename(config.filename)}:")
@@ -18,10 +29,26 @@ def main():
         if result.stderr:
             print(f"Error running {algorithm}: {result.stderr}")
         else:
-            with open(f"{algorithm}_output.txt", "a") as f:
-                f.write(f"Results for {os.path.basename(config.filename)}\n")
-                f.write(result.stdout)
-                f.write("\n")
+            output_lines = result.stdout.splitlines()
+            name = None
+            comment = None
+            dimensions = None
+            best_tour = None
+            best_distance = None
+
+            for line in output_lines:
+                if line.startswith("NAME"):
+                    name = line.split(":")[1].strip()
+                elif line.startswith("COMMENT"):
+                    comment = line.split(":")[1].strip()
+                elif line.startswith("DIMENSION"):
+                    dimensions = line.split(":")[1].strip()
+                elif line.startswith("Best tour"):
+                    best_tour = line.split(":")[1].strip()
+                elif line.startswith("Best distance"):
+                    best_distance = line.split(":")[1].strip()
+
+            write_to_csv(algorithm, os.path.basename(config.filename), name, comment, dimensions, best_tour, best_distance)
 
 
 if __name__ == "__main__":
