@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 class PACS_ACO:
     def __init__(self, filename):
@@ -13,18 +14,25 @@ class PACS_ACO:
                     print(line.strip())
 
     def load_graph(self):
-        # Load the benchmark data from the file
+        print("Loading graph...", self.filename)
         with open(self.filename, 'r') as file:
             lines = file.readlines()
 
-        start_index = lines.index("NODE_COORD_SECTION\n")
+        # Find the index of the line containing "NODE_COORD_SECTION"
+        start_index = -1
+        for idx, line in enumerate(lines):
+            if line.startswith("NODE_COORD_SECTION"):
+                start_index = idx
+                break
+
+        if start_index == -1:
+            raise ValueError("Missing 'NODE_COORD_SECTION' marker in the file.")
+
         lines = lines[start_index + 1:]
 
         num_nodes = 0
         node_coords = {}
         for line in lines:
-            if not line.strip():  # Check for empty line
-                break
             parts = line.split()
             if len(parts) < 3:  # Skip lines without coordinates
                 continue
@@ -65,23 +73,17 @@ class PACS_ACO:
                 while len(visited_nodes) < num_nodes:
                     unvisited_nodes = [node for node in range(num_nodes) if node not in visited_nodes]
                     probabilities = [((pheromones[current_node][next_node] ** alpha) *
-                                      (1.0 / self.graph[current_node][next_node]) ** beta)
+                                    (1.0 / max(self.graph[current_node][next_node], 1e-9)) ** beta)
                                     for next_node in unvisited_nodes]
 
-                    # Check for zero probabilities
+                    # Normalize probabilities
                     sum_probabilities = np.sum(probabilities)
-                    if sum_probabilities == 0:
-                        selected_node = np.random.choice(unvisited_nodes)
+                    if sum_probabilities != 0:
+                        probabilities /= sum_probabilities
                     else:
-                        epsilon = 1e-9  # Small epsilon value to avoid division by zero
-                        probabilities /= (sum_probabilities + epsilon)  # Normalize probabilities
+                        probabilities = np.ones(len(unvisited_nodes)) / len(unvisited_nodes)  # Equal probabilities if sum is 0
 
-                        # Corrective adjustment to ensure probabilities sum to 1
-                        diff_sum = 1.0 - np.sum(probabilities)
-                        probabilities[-1] += diff_sum  # Add the difference to the last probability
-
-                        selected_node = np.random.choice(unvisited_nodes, p=probabilities)
-
+                    selected_node = np.random.choice(unvisited_nodes, p=probabilities)
                     visited_nodes.append(selected_node)
                     tour_distance += self.graph[current_node][selected_node]
                     current_node = selected_node
@@ -94,18 +96,21 @@ class PACS_ACO:
                     best_tour = visited_nodes
                     best_distance = tour_distance
 
-            # Update pheromone levels
             pheromones *= (1 - evaporation_rate)
             for ant, tour in enumerate(ant_tours):
                 for i in range(len(tour) - 1):
-                    pheromones[tour[i]][tour[i + 1]] += 1.0 / ant_distances[ant]
-                pheromones[tour[-1]][tour[0]] += 1.0 / ant_distances[ant]
+                    pheromones[tour[i]][tour[i + 1]] += 1.0 / max(ant_distances[ant], 1e-9)
+                pheromones[tour[-1]][tour[0]] += 1.0 / max(ant_distances[ant], 1e-9)
 
         return best_tour, best_distance
 
-# Example usage:
-filename = "US.tsp"  # Replace with the actual filename
-pacs_solver = PACS_ACO(filename)
-best_tour, best_distance = pacs_solver.partial_ant_colony_system()
-print("Best tour:", best_tour)
-print("Best distance:", best_distance)
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python pacs.py <filename>")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+    pacs_solver = PACS_ACO(filename)
+    best_tour, best_distance = pacs_solver.partial_ant_colony_system()
+    print("Best tour:", best_tour)
+    print("Best distance:", best_distance)
