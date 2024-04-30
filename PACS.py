@@ -66,7 +66,7 @@ class PACS_ACO:
                     unvisited_nodes = [node for node in range(num_nodes) if node not in visited_nodes]
                     probabilities = [((pheromones[current_node][next_node] ** alpha) *
                                       (1.0 / self.graph[current_node][next_node]) ** beta)
-                                     for next_node in unvisited_nodes]
+                                    for next_node in unvisited_nodes]
 
                     # Check for zero probabilities
                     sum_probabilities = np.sum(probabilities)

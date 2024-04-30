@@ -15,14 +15,13 @@ class Ant:
     def __init__(self, cities):
         self.cities = cities
         self.start_city = random.choice(cities)
-        self.current_city = self.start_city  # Set current_city to start_city initially
+        self.current_city = self.start_city
         self.visited = set()
         self.visited.add(self.start_city)
         self.tour = [self.start_city]
         self.total_distance = 0.0
 
     def move_to_next_city(self):
-        # Placeholder logic for choosing the next city
         next_city = random.choice(list(set(self.cities) - self.visited))
         return next_city
 
@@ -32,7 +31,7 @@ class Ant:
             self.visited.add(next_city)
             self.tour.append(next_city)
             self.total_distance += self.current_city.distance(next_city)
-            self.current_city = next_city  # Update current_city for the next iteration # Complete the tour by returning to the start city
+            self.current_city = next_city
         self.tour.append(self.start_city)
         self.total_distance += self.current_city.distance(self.start_city)
 
@@ -45,52 +44,55 @@ class RACS:
         self.beta = beta
         self.rho = rho
         self.q = q
-        self.pheromone = [[1.0 for _ in range(len(cities))] for _ in range(len(cities))]  # Initialize pheromone levels
+        self.pheromone = [[1.0 for _ in range(len(cities))] for _ in range(len(cities))]
 
     def update_pheromone(self, tours):
-        # Placeholder method for updating pheromone levels based on ant tours
         pass
 
     def run(self, iterations):
+        best_tour = None
+        best_distance = float('inf')
+
         for _ in range(iterations):
             ants = [Ant(self.cities) for _ in range(self.num_ants)]
             for ant in ants:
                 ant.make_tour()
 
-            # Sort ants by tour length
             ants.sort(key=lambda x: x.total_distance)
-
-            # Select elite ants
             elite_ants = ants[:int(self.q * self.num_ants)]
+            
+            if elite_ants:
+                current_best_tour = min(elite_ants, key=lambda x: x.total_distance).tour
+                current_best_distance = min(elite_ants, key=lambda x: x.total_distance).total_distance
 
-            # Update pheromone levels based on elite ant tours
+                if current_best_distance < best_distance:
+                    best_tour = current_best_tour
+                    best_distance = current_best_distance
+
             self.update_pheromone([ant.tour for ant in elite_ants])
 
-        # Find the best tour among elite ants
-        best_tour = min(elite_ants, key=lambda x: x.total_distance).tour
-        best_distance = min(elite_ants, key=lambda x: x.total_distance).total_distance
+        if best_tour is None:
+            raise ValueError("No elite ants found during the optimization process.")
 
         return best_tour, best_distance
 
-# Example usage with TSP file
 def parse_tsp_file(filename):
     cities = []
-    dimension = None  # Initialize dimension variable
+    dimension = None
     with open(filename, 'r') as file:
         lines = file.readlines()
         section_found = False
-        print("Algorithm: RACS")
         for line in lines:
             if line.startswith('NODE_COORD_SECTION'):
                 section_found = True
                 break
             elif line.startswith('COMMENT :'):
-                print(f"Comment found: {line.strip()}")  # Print comment lines
+                print(f"COMMENT : {line.strip().split(':')[1].strip()}")
             elif line.startswith('NAME :'):
-                print(f"Problem name: {line.strip().split(':')[1].strip()}")
+                print(f"NAME : {line.strip().split(':')[1].strip()}")
             elif line.startswith('DIMENSION :'):
                 dimension = int(line.strip().split(':')[1].strip())
-                print(f"Number of cities: {dimension}")
+                print(f"DIMENSION : {dimension}")
 
         if not section_found:
             raise ValueError("NODE_COORD_SECTION not found in the TSP file.")
@@ -100,7 +102,7 @@ def parse_tsp_file(filename):
                 break
             city_info = line.split()
             if len(city_info) != 3:
-                continue  # Skip lines that don't have three columns (ID, X, Y)
+                continue
             try:
                 city_id = int(city_info[0])
                 x_coord = float(city_info[1])
@@ -113,22 +115,13 @@ def parse_tsp_file(filename):
     return cities
 
 
-# Run the RACS algorithm with TSP file input
-def run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q):  # cities as argument
+def run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q):
     racs = RACS(cities, num_ants, alpha, beta, rho, q)
     best_tour, best_distance = racs.run(iterations)
     return best_tour, best_distance
 
-# Example usage:
-
-
 cities = parse_tsp_file(filename)
-best_tour, best_distance = run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q) 
+best_tour, best_distance = run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q)
 best_tour_ids = [city.id for city in best_tour]
-print("Best Tour:", best_tour_ids)
-best_tour_ids_racs = best_tour_ids
-best_distance_racs = best_distance
-
-
-print("Best Distance:", best_distance)
-print("-" * 50)
+print(f"Best tour: {best_tour_ids}")
+print(f"Best distance: {best_distance}")

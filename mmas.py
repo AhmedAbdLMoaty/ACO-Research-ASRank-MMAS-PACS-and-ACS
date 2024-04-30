@@ -1,16 +1,9 @@
 import numpy as np
-
+from config import filename
 class MMAS_ACO:
     def __init__(self, filename):
         self.filename = filename
         self.graph = self.load_graph()
-        self.search_tsp_info()
-
-    def search_tsp_info(self):
-        with open(self.filename, 'r') as file:
-            for line in file:
-                if line.startswith("NAME :") or line.startswith("COMMENT :") or line.startswith("DIMENSION :"):
-                    print(line.strip())
 
     def load_graph(self):
         # Load the benchmark data from the file
@@ -111,7 +104,6 @@ class MMAS_ACO:
         return best_tour, best_distance
 
 # Example usage:
-filename = "US.tsp"  # Replace with the actual filename
 mmas_solver = MMAS_ACO(filename)
 best_tour, best_distance = mmas_solver.max_min_ant_system()
 print("Best tour:", best_tour)

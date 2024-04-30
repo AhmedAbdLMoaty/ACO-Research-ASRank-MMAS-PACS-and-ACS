@@ -40,7 +40,7 @@ class ACS:
 
         return graph
 
-    def ant_colony_optimization(self, num_ants = num_ants, iterations = iterations, evaporation_rate = evaporation_rate , alpha= alpha, beta= beta):
+    def ant_colony_optimization(self, num_ants=num_ants, iterations=iterations, evaporation_rate=evaporation_rate, alpha=alpha, beta=beta):
         num_nodes = len(self.graph)
         pheromones = np.ones((num_nodes, num_nodes))  # Initial pheromone levels
 
@@ -85,9 +85,34 @@ class ACS:
 
         return best_tour, best_distance
 
+    def print_results(self, best_tour, best_distance):
+        with open(self.filename, 'r') as file:
+            lines = file.readlines()
+
+        name = None
+        dimension = None
+        comment = None
+
+        for line in lines:
+            if line.startswith("NAME"):
+                name = line.split(":")[1].strip()
+            elif line.startswith("DIMENSION"):
+                dimension = line.split(":")[1].strip()
+            elif line.startswith("COMMENT"):
+                comment = line.split(":")[1].strip()
+
+        if name:
+            print(f"NAME : {name}")
+        if comment:
+            print(f"COMMENT : {comment}")
+        if dimension:
+            print(f"DIMENSION : {dimension}")
+
+        print(f"Best tour: {best_tour}")
+        print(f"Best distance: {best_distance}")
+
 # Example usage:
 filename = "US.tsp"  # Replace with the actual filename
 acs_solver = ACS(filename)
 best_tour, best_distance = acs_solver.ant_colony_optimization()
-print("Best tour:", best_tour)
-print("Best distance:", best_distance)
+acs_solver.print_results(best_tour, best_distance)
