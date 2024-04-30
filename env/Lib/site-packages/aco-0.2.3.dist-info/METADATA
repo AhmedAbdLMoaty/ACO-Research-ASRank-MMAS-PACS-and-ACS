@@ -1,0 +1,119 @@
+Metadata-Version: 2.1
+Name: aco
+Version: 0.2.3
+Summary: Ant Colony Optimization in Python
+Home-page: https://github.com/harish3124/aco
+License: MIT
+Author: Harish
+Author-email: harishhari3112004@gmail.com
+Requires-Python: >=3.10,<4.0
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Project-URL: Repository, https://github.com/harish3124/aco
+Description-Content-Type: text/markdown
+
+# Ant Colony Optimization
+
+##### Implementation of the Ant Colony Optimization algorithm in Python
+
+> Currently works on 2D Cartesian coordinate system
+
+## Installation
+
+#### From PyPi
+
+```shell
+pip install aco
+```
+
+#### Using [Poetry](https://python-poetry.org/)
+
+```shell
+poetry add aco
+```
+
+## Usage
+
+```python
+AntColony(
+    nodes,
+    start=None,
+    ant_count=300,
+    alpha=0.5,
+    beta=1.2,
+    pheromone_evaporation_rate=0.40,
+    pheromone_constant=1000.0,
+    iterations=300,
+)
+```
+
+### Travelling Salesman Problem
+```python
+import matplotlib.pyplot as plt
+import random
+
+from aco import AntColony
+
+
+plt.style.use("dark_background")
+
+
+COORDS = (
+    (20, 52),
+    (43, 50),
+    (20, 84),
+    (70, 65),
+    (29, 90),
+    (87, 83),
+    (73, 23),
+)
+
+
+def random_coord():
+    r = random.randint(0, len(COORDS))
+    return r
+
+
+def plot_nodes(w=12, h=8):
+    for x, y in COORDS:
+        plt.plot(x, y, "g.", markersize=15)
+    plt.axis("off")
+    fig = plt.gcf()
+    fig.set_size_inches([w, h])
+
+
+def plot_all_edges():
+    paths = ((a, b) for a in COORDS for b in COORDS)
+
+    for a, b in paths:
+        plt.plot((a[0], b[0]), (a[1], b[1]))
+
+
+plot_nodes()
+
+colony = AntColony(COORDS, ant_count=300, iterations=300)
+
+optimal_nodes = colony.get_path()
+
+for i in range(len(optimal_nodes) - 1):
+    plt.plot(
+        (optimal_nodes[i][0], optimal_nodes[i + 1][0]),
+        (optimal_nodes[i][1], optimal_nodes[i + 1][1]),
+    )
+
+
+plt.show()
+```
+
+![screenshot](screenshot.jpg)
+
+---
+
+#### Reference
+
+- [Wikipedia](https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms)
+
+- [pjmattingly/ant-colony-optimization](https://github.com/pjmattingly/ant-colony-optimization)
+
