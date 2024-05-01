@@ -12,13 +12,14 @@ class MMAS_ACO:
         with open(self.filename, 'r') as file:
             for line in file:
                 line = line.strip()
-                if line.startswith(("NAME :", "COMMENT :", "DIMENSION :")):
+                line_lower = line.lower()  # Convert to lowercase for case-insensitive matching
+                if line_lower.startswith(("name :", "comment :", "dimension :")):
                     line_parts = line.split(":")
                     if len(line_parts) > 1:
                         print(f"{line_parts[0].strip()} : {line_parts[1].strip()}")
                     else:
                         print(line)
-                elif line.startswith(("NAME:", "COMMENT:", "DIMENSION:")):
+                elif line_lower.startswith(("name:", "comment:", "dimension:")):
                     line_parts = line.split(":")
                     if len(line_parts) > 1:
                         print(f"{line_parts[0].strip()} : {line_parts[1].strip()}")

@@ -13,6 +13,7 @@ class City:
     def distance(self, other):
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
+
 class Ant:
     def __init__(self, cities):
         self.cities = cities
@@ -67,7 +68,7 @@ class RACS:
 
             ants.sort(key=lambda x: x.total_distance)
             elite_ants = ants[:int(self.q * self.num_ants)]
-            
+
             if elite_ants:
                 current_best_tour = min(elite_ants, key=lambda x: x.total_distance).tour
                 current_best_distance = min(elite_ants, key=lambda x: x.total_distance).total_distance
@@ -83,6 +84,7 @@ class RACS:
 
         return best_tour, best_distance
 
+
 def parse_tsp_file(filename):
     cities = []
     dimension = None
@@ -90,22 +92,29 @@ def parse_tsp_file(filename):
         lines = file.readlines()
         section_found = False
         for line in lines:
-            if line.startswith('NODE_COORD_SECTION'):
+            line_lower = line.lower().strip()  # Convert line to lowercase and remove leading/trailing spaces
+            if line_lower.startswith('node_coord_section'):
                 section_found = True
                 break
-            elif line.startswith('COMMENT :'):
-                print(f"COMMENT : {line.strip().split(':')[1].strip()}")
-            elif line.startswith('NAME :'):
-                print(f"NAME : {line.strip().split(':')[1].strip()}")
-            elif line.startswith('DIMENSION :'):
+            elif line_lower.startswith('comment') or line_lower.startswith('comment:'):
+                comment_parts = line.strip().split(':', 1)
+                if len(comment_parts) > 1:
+                    comment_value = comment_parts[1].strip()
+                    print(f"COMMENT: {comment_value}")
+            elif line_lower.startswith('name') or line_lower.startswith('name:'):
+                name_parts = line.strip().split(':', 1)
+                if len(name_parts) > 1:
+                    name_value = name_parts[1].strip()
+                    print(f"NAME: {name_value}")
+            elif line_lower.startswith('dimension') or line_lower.startswith('dimension:'):
                 dimension = int(line.strip().split(':')[1].strip())
-                print(f"DIMENSION : {dimension}")
+                print(f"DIMENSION: {dimension}")
 
         if not section_found:
             raise ValueError("NODE_COORD_SECTION not found in the TSP file.")
 
         for line in lines:
-            if line.strip() == 'EOF':
+            if line.strip() == 'eof':
                 break
             city_info = line.split()
             if len(city_info) != 3:
@@ -126,6 +135,7 @@ def run_racs_from_file(cities, iterations, num_ants, alpha, beta, rho, q):
     racs = RACS(cities, num_ants, alpha, beta, rho, q)
     best_tour, best_distance = racs.run(iterations)
     return best_tour, best_distance
+
 
 filename = sys.argv[1]
 cities = parse_tsp_file(filename)

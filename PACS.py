@@ -1,33 +1,39 @@
 import numpy as np
 import sys
 from config import iterations, num_ants, alpha, beta, rho, q, evaporation_rate
-class PACS_ACO:
-    def __init__(self, filename):
-        self.filename = filename
-        self.graph = self.load_graph()
-        self.search_tsp_info()
+
 
 class PACS_ACO:
     def __init__(self, filename):
         self.filename = filename
         self.graph = self.load_graph()
-        self.search_tsp_info()
+        self.dimension = self.search_tsp_info()
 
     def search_tsp_info(self):
+        dimension = None
         with open(self.filename, 'r') as file:
             for line in file:
-                line = line.strip()
-                if line.startswith(("NAME :", "COMMENT :", "DIMENSION :")):
+                line = line.strip().lower()  # Convert line to lowercase and remove leading/trailing spaces
+                if line.startswith(("name:", "comment:", "dimension:")):
                     line_parts = line.split(":")
                     if len(line_parts) > 1:
-                        print(f"{line_parts[0].strip()} : {line_parts[1].strip()}")
+                        key = line_parts[0].strip()
+                        value = line_parts[1].strip()
+                        print(f"{key.capitalize()} : {value}")
+                        if key == "dimension":
+                            dimension = int(value)
                     else:
                         print(line)
-
+        return dimension
 
     def load_graph(self):
         with open(self.filename, 'r') as file:
             lines = file.readlines()
+
+        # Debug: Print the first few lines of the file
+        print("First few lines of the file:")
+        for line in lines[:5]:  # Print the first 5 lines
+            print(line.strip())
 
         # Find the index of the line containing "NODE_COORD_SECTION"
         start_index = -1
@@ -35,6 +41,11 @@ class PACS_ACO:
             if line.startswith("NODE_COORD_SECTION"):
                 start_index = idx
                 break
+
+        # Debug: Print the start index and the line at that index
+        print("Start index of 'NODE_COORD_SECTION':", start_index)
+        if start_index != -1:
+            print("Line at start index:", lines[start_index].strip())
 
         if start_index == -1:
             raise ValueError("Missing 'NODE_COORD_SECTION' marker in the file.")
@@ -84,7 +95,7 @@ class PACS_ACO:
                 while len(visited_nodes) < num_nodes:
                     unvisited_nodes = [node for node in range(num_nodes) if node not in visited_nodes]
                     probabilities = [((pheromones[current_node][next_node] ** alpha) *
-                                    (1.0 / max(self.graph[current_node][next_node], 1e-9)) ** beta)
+                                      (1.0 / max(self.graph[current_node][next_node], 1e-9)) ** beta)
                                     for next_node in unvisited_nodes]
 
                     # Normalize probabilities
@@ -115,6 +126,7 @@ class PACS_ACO:
 
         return best_tour, best_distance
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python pacs.py <filename>")
@@ -123,5 +135,5 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     pacs_solver = PACS_ACO(filename)
     best_tour, best_distance = pacs_solver.partial_ant_colony_system()
-    print("Best tour :", best_tour)
-    print("Best distance :", best_distance)
+    print("Best tour:", best_tour)
+    print("Best distance:", best_distance)
